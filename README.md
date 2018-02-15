@@ -34,8 +34,7 @@ ImageTyperzAPI::account_balance_token($access_token);
 **Submit image captcha**
 
 ``` perl
-my $captcha_text = ImageTyperzAPI::solve_captcha_token($access_token, 
-'captcha.jpg', '1');
+my $captcha_text = ImageTyperzAPI::solve_captcha_token($access_token, 'captcha.jpg', '1');
 ```
 
 **Submit recaptcha details**
@@ -45,8 +44,7 @@ For recaptcha submission there are two things that are required.
 - site_key
 
 ``` perl
-my $captcha_id = ImageTyperzAPI::submit_recaptcha_token($access_token, 
-$page_url, $sitekey);
+my $captcha_id = ImageTyperzAPI::submit_recaptcha_token($access_token, $page_url, $sitekey);
 ```
 This method returns a captchaID. This ID will be used next, to retrieve 
 the g-response, once workers have 
@@ -68,8 +66,7 @@ while(ImageTyperzAPI::in_progress_token($access_token, $captcha_id))
     sleep(10);		# sleep for 10 seconds
 }
 
-my $gresponse = ImageTyperzAPI::retrieve_recaptcha_token($access_token, 
-$captcha_id);
+my $gresponse = ImageTyperzAPI::retrieve_recaptcha_token($access_token, $captcha_id);
 ```
 
 ## Other methods/variables
@@ -98,8 +95,7 @@ For submitting recaptcha with affiliate ID, set it as the next parameter
 after sitekey.
 
 ``` perl
-ImageTyperzAPI::submit_recaptcha_token($token, $page_url, $sitekey, 
-$aff_id);
+ImageTyperzAPI::submit_recaptcha_token($token, $page_url, $sitekey, $aff_id);
 ```
 
 Affiliate ID can be set for normal captcha solving as well
@@ -122,13 +118,11 @@ Recaptcha solving can be made through a proxy. In order for this to
 happen, submit a proxy parameter to the submit_recaptcha_token or 
 submit_recaptcha_legacy methods
 ``` perl
-ImageTyperzAPI::submit_recaptcha_legacy($username, $password, $page_url, 
-$sitekey, $ref_id, 'ip:port');
+ImageTyperzAPI::submit_recaptcha_legacy($username, $password, $page_url, $sitekey, $ref_id, 'ip:port');
 ```
 **Proxy with authentication is also supported**
 ``` perl
-ImageTyperzAPI::submit_recaptcha_legacy($username, $password, $page_url, 
-$sitekey, $ref_id, 'ip:port:user:pass');
+ImageTyperzAPI::submit_recaptcha_legacy($username, $password, $page_url, $sitekey, $ref_id, 'ip:port:user:pass');
 ```
 We currently support HTTP proxies.
 
