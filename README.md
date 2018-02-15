@@ -12,7 +12,6 @@ imagetyperz.com captcha service
 ## How to use?
 
 ``` perl
-use lib File::Spec->catfile( dirname (__FILE__), 'lib' );
 use ImageTyperzAPI;
 ```
 
