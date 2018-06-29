@@ -15,6 +15,7 @@ my $RECAPTCHA_SUBMIT_ENDPOINT = 'http://captchatypers.com/captchaapi/UploadRecap
 my $RECAPTCHA_RETRIEVE_ENDPOINT = 'http://captchatypers.com/captchaapi/GetRecaptchaText.ashx';
 my $BALANCE_ENDPOINT = 'http://captchatypers.com/Forms/RequestBalance.ashx';
 my $BAD_IMAGE_ENDPOINT = 'http://captchatypers.com/Forms/SetBadImage.ashx';
+my $PROXY_CHECK_ENDPOINT = 'http://captchatypers.com/captchaAPI/GetReCaptchaTextJSON.ashx';
 
 my $CAPTCHA_ENDPOINT_CONTENT_TOKEN = 'http://captchatypers.com/Forms/UploadFileAndGetTextNEWToken.ashx';
 my $CAPTCHA_ENDPOINT_URL_TOKEN = 'http://captchatypers.com/Forms/FileUploadAndGetTextCaptchaURLToken.ashx';
@@ -22,6 +23,7 @@ my $RECAPTCHA_SUBMIT_ENDPOINT_TOKEN = 'http://captchatypers.com/captchaapi/Uploa
 my $RECAPTCHA_RETRIEVE_ENDPOINT_TOKEN = 'http://captchatypers.com/captchaapi/GetRecaptchaTextToken.ashx';
 my $BALANCE_ENDPOINT_TOKEN = 'http://captchatypers.com/Forms/RequestBalanceToken.ashx';
 my $BAD_IMAGE_ENDPOINT_TOKEN = 'http://captchatypers.com/Forms/SetBadImageToken.ashx';
+my $PROXY_CHECK_ENDPOINT_TOKEN = 'http://captchatypers.com/captchaAPI/GetReCaptchaTextTokenJSON.ashx';
 
 # ACCESS TOKEN
 # --------------
@@ -73,31 +75,9 @@ sub solve_captcha_token
 sub submit_recaptcha_token
 {
 	my $ua = LWP::UserAgent->new();
-	my $proxy = '';
-	my $ref_id = '0';
+	my $data = $_[0];
 	
-	if(defined $_[3])		# check if ref id was given
-	{
-		$ref_id = $_[3];	# set ref id
-	}
-	
-	if(defined $_[4])		# check if proxy was given
-	{
-		$proxy = $_[4];	# proxy
-	}
-	else
-	{
-		$proxy = ''
-	}
-	
-	my $response = $ua->request(POST $RECAPTCHA_SUBMIT_ENDPOINT_TOKEN, Content_Type => 'form-data', Content => [
-				 action => 'UPLOADCAPTCHA',
-				 token => $_[0],
-				 pageurl =>$_[1],
-				 googlekey => $_[2],
-				 proxy => $proxy,
-				 affiliateid => $ref_id
-				]);
+	my $response = $ua->request(POST $RECAPTCHA_SUBMIT_ENDPOINT_TOKEN, Content_Type => 'form-data', Content => $data);
 
    	if ($response->is_error())
    	{
@@ -197,6 +177,52 @@ sub set_captcha_bad_token
     }
 }
 
+# Tells if proxy was used, and if not reason why - token
+sub was_proxy_used_token
+{
+	my $ua = LWP::UserAgent->new();
+	my $response = $ua->request(POST $PROXY_CHECK_ENDPOINT_TOKEN, Content_Type => 'form-data', Content => [
+		action => 'GETTEXT',
+		token => $_[0],
+		captchaid =>$_[1],
+	]);
+
+	if ($response->is_error())
+	{
+		return $response->status_line;
+	} else {
+		my $c = $response->content();
+		if (index($c, 'Error') != -1) {
+			die($c);
+		}
+		return $c;
+	}
+}
+
+# Tells if proxy was used, and if not reason why - legacy
+sub was_proxy_used_legacy
+{
+	my $ua = LWP::UserAgent->new();
+	my $response = $ua->request(POST $PROXY_CHECK_ENDPOINT, Content_Type => 'form-data', Content => [
+		action => 'GETTEXT',
+		username => $_[0],
+		password => $_[1],
+		captchaid =>$_[2],
+	]);
+
+	if ($response->is_error())
+	{
+		return $response->status_line;
+	} else {
+		my $c = $response->content();
+		if (index($c, 'Error') != -1) {
+			die($c);
+		}
+		return $c;
+	}
+}
+
+
 # LEGACY WAY
 # this might get deprecated, better of using access_token
 # --------------------------------------------------------
@@ -250,43 +276,20 @@ sub solve_captcha_legacy
 sub submit_recaptcha_legacy
 {
 	my $ua = LWP::UserAgent->new();
-	my $proxy = '';
-	my $ref_id = '0';
-	
-	if(defined $_[3])		# check if ref id was given
-	{
-		$ref_id = $_[3];	# set ref id
-	}
-	
-	if(defined $_[4])		# check if proxy was given
-	{
-		$proxy = $_[4];	# proxy
-	}
-	else
-	{
-		$proxy = ''
-	}
+	my $data = $_[0];
 
-	my $response = $ua->request(POST $RECAPTCHA_SUBMIT_ENDPOINT, Content_Type => 'form-data', Content => [
-				 action => 'UPLOADCAPTCHA',
-				 username => $_[0],
-				 password => $_[1],
-				 pageurl =>$_[2],
-				 googlekey => $_[3],
-				 proxy => $proxy,
-				 affiliateid => $ref_id
-				]);
+	my $response = $ua->request(POST $RECAPTCHA_SUBMIT_ENDPOINT, Content_Type => 'form-data', Content => $data);
 
-   	if ($response->is_error())
-   	{
+	if ($response->is_error())
+	{
 		return $response->status_line;
-    } else {
-        my $c = $response->content();
+	} else {
+		my $c = $response->content();
 		if (index($c, 'ERROR') != -1) {
 			die($c);
-		} 
-        return $c;		
-    }
+		}
+		return $c;		# return ID
+	}
 }
 
 # Retrieve recaptcha
