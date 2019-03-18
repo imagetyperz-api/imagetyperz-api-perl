@@ -7,6 +7,7 @@ use strict;
 use LWP::UserAgent;
 use HTTP::Request::Common;
 use MIME::Base64 qw(encode_base64);
+use URI qw( );
 
 # constants
 # --------------------------------------------------------------------------------------------
@@ -16,6 +17,8 @@ my $RECAPTCHA_RETRIEVE_ENDPOINT = 'http://captchatypers.com/captchaapi/GetRecapt
 my $BALANCE_ENDPOINT = 'http://captchatypers.com/Forms/RequestBalance.ashx';
 my $BAD_IMAGE_ENDPOINT = 'http://captchatypers.com/Forms/SetBadImage.ashx';
 my $PROXY_CHECK_ENDPOINT = 'http://captchatypers.com/captchaAPI/GetReCaptchaTextJSON.ashx';
+my $GEETEST_SUBMIT_ENDPOINT = 'http://captchatypers.com/captchaapi/UploadGeeTest.ashx';
+my $GEETEST_RETRIEVE_ENDPOINT = 'http://captchatypers.com/captchaapi/getrecaptchatext.ashx';
 
 my $CAPTCHA_ENDPOINT_CONTENT_TOKEN = 'http://captchatypers.com/Forms/UploadFileAndGetTextNEWToken.ashx';
 my $CAPTCHA_ENDPOINT_URL_TOKEN = 'http://captchatypers.com/Forms/FileUploadAndGetTextCaptchaURLToken.ashx';
@@ -24,6 +27,7 @@ my $RECAPTCHA_RETRIEVE_ENDPOINT_TOKEN = 'http://captchatypers.com/captchaapi/Get
 my $BALANCE_ENDPOINT_TOKEN = 'http://captchatypers.com/Forms/RequestBalanceToken.ashx';
 my $BAD_IMAGE_ENDPOINT_TOKEN = 'http://captchatypers.com/Forms/SetBadImageToken.ashx';
 my $PROXY_CHECK_ENDPOINT_TOKEN = 'http://captchatypers.com/captchaAPI/GetReCaptchaTextTokenJSON.ashx';
+my $GEETEST_SUBMIT_ENDPOINT_TOKEN = 'http://captchatypers.com/captchaapi/UploadGeeTestToken.ashx';
 
 # ACCESS TOKEN
 # --------------
@@ -128,6 +132,46 @@ sub in_progress_token
 	else
 	{
 		return 1;		# contains NOT_DECODED, still in progress
+	}
+}
+
+# Checks if geetest is still in process of solving
+sub in_progress_geetest
+{
+	my $resp = retrieve_geetest($_[0]);
+	if(index($resp, 'NOT_DECODED') == -1)
+	{
+		return 0;		# does not contain NOT_DECODED, move on
+	}
+	else
+	{
+		return 1;		# contains NOT_DECODED, still in progress
+	}
+}
+
+# Submit geetest
+sub submit_geetest_token
+{
+	my $ua = LWP::UserAgent->new();
+	my $data = $_[0];
+
+	my $url = $GEETEST_SUBMIT_ENDPOINT_TOKEN;
+	$url .= '?';
+	my $u = URI->new('', 'http');
+	$u->query_form(@$data);
+	my $query = $u->query;
+	$url .= $query;
+	my $response = $ua->request(GET $url);
+
+	if ($response->is_error())
+	{
+		return $response->status_line;
+	} else {
+		my $c = $response->content();
+		if (index($c, 'ERROR') != -1) {
+			die($c);
+		}
+		return $c;		# return ID
 	}
 }
 
@@ -319,6 +363,35 @@ sub retrieve_recaptcha_legacy
     }
 }
 
+# Retrieve recaptcha
+# -------------------------------------------------------------------------------------------------
+sub retrieve_geetest
+{
+	my $data = $_[0];
+	my $ua = LWP::UserAgent->new();
+	my $url = $GEETEST_RETRIEVE_ENDPOINT;
+	$url .= '?';
+	my $u = URI->new('', 'http');
+	$u->query_form(@$data);
+	my $query = $u->query;
+	$url .= $query;
+	my $response = $ua->request(GET $url);
+
+	if ($response->is_error())
+	{
+		return $response->status_line;
+	} else {
+		my $c = $response->content();
+		if (index($c, 'ERROR') != -1) {
+			if (index($c, 'NOT_DECODED') != -1) {
+				return $c;		# return NOT_DECODED
+			}
+			else {die($c);}	# error, die
+		}
+		return $c;		# return ID
+	}
+}
+
 # Checks if recaptcha is still in process of solving
 sub in_progress_legacy
 {
@@ -330,6 +403,32 @@ sub in_progress_legacy
 	else
 	{
 		return 1;		# contains NOT_DECODED, still in progress
+	}
+}
+
+# Submit geetest
+sub submit_geetest_legacy
+{
+	my $ua = LWP::UserAgent->new();
+	my $data = $_[0];
+
+	my $url = $GEETEST_SUBMIT_ENDPOINT;
+	$url .= '?';
+	my $u = URI->new('', 'http');
+	$u->query_form(@$data);
+	my $query = $u->query;
+	$url .= $query;
+	my $response = $ua->request(GET $url);
+
+	if ($response->is_error())
+	{
+		return $response->status_line;
+	} else {
+		my $c = $response->content();
+		if (index($c, 'ERROR') != -1) {
+			die($c);
+		}
+		return $c;		# return ID
 	}
 }
 

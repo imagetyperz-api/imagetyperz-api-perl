@@ -31,13 +31,17 @@ authentication
 ImageTyperzAPI::account_balance_token($access_token);     
 ```
 
-**Submit image captcha**
+## Image captcha
+
+### Submit image captcha
 
 ``` perl
 my $captcha_text = ImageTyperzAPI::solve_captcha_token($access_token, 'captcha.jpg', '1');
 ```
 
-**Submit recaptcha details**
+## reCAPTCHA
+
+### Submit recaptcha details
 
 For recaptcha submission there are two things that are required.
 - page_url
@@ -77,7 +81,7 @@ This method returns a captchaID. This ID will be used next, to retrieve the g-re
 completed the captcha. This takes somewhere between 10-80 seconds.
 
 
-**Retrieve captcha response**
+### Retrieve captcha response
 
 Once you have the captchaID, you check for it's progress, and later on 
 retrieve the gresponse.
@@ -95,6 +99,67 @@ while(ImageTyperzAPI::in_progress_token($access_token, $captcha_id))
 
 my $gresponse = ImageTyperzAPI::retrieve_recaptcha_token($access_token, $captcha_id);
 ```
+
+## GeeTest
+
+GeeTest is a captcha that requires 3 parameters to be solved:
+- domain
+- challenge
+- gt
+
+The response of this captcha after completion are 3 codes:
+- challenge
+- validate
+- seccode
+
+### Submit GeeTest
+```perl
+my $geetest_params = [(
+token     => $access_token,
+#username  => $username, # legacy
+#password  => $password, # legacy
+
+action    => 'UPLOADCAPTCHA',
+domain    => 'domain',
+challenge => 'geetest challenge',
+gt        => 'geetest gt'
+# proxy => '12.34.54.56:123',        # or '123.43.45.65:123:user:password' with auth - optional
+# proxytype => 'HTTP', # if proxy is used, un-comment this as well, only HTTP supported for now
+# useragent => 'Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0', # optional
+# affiliateid => '12344'    # affiliate id - optional
+)];
+my $geetest_id = ImageTyperzAPI::submit_geetest_token($geetest_params);
+```
+
+Just like reCAPTCHA, you'll receive a captchaID.
+Using the ID, you'll be able to retrieve 3 codes after completion.
+
+Optionally, you can send proxy and user_agent along.
+
+### Retrieve GeeTest codes
+```perl
+printf 'Geetest ID: %s', $geetest_id;
+
+while(ImageTyperzAPI::in_progress_geetest([(
+    token     => $access_token,
+    username  => $username,     # legacy
+    password  => $password,     # legacy
+    captchaid => $geetest_id,
+    action    => 'GETTEXT'
+)]))	# while in progress
+{
+    sleep(10);		# sleep for 10 seconds
+}
+printf 'Geetest response: %s\n', ImageTyperzAPI::retrieve_geetest([(
+    token     => $access_token,
+    username  => $username, # legacy
+    password  => $password, # legacy
+    captchaid => $geetest_id,
+    action    => 'GETTEXT'
+)]);
+```
+
+Response will be a string object that looks like this: `challenge;;;validate;;;seccode`
 
 ## Other methods/variables
 
