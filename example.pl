@@ -23,8 +23,9 @@ sub test_api {
     printf 'Balance legacy: %s\n', ImageTyperzAPI::account_balance_legacy($username, $password);
     # solve normal captcha
     # --------------------
-    my $captcha_text = ImageTyperzAPI::solve_captcha_token($access_token, 'captcha.jpg', '1');
+    my $captcha_text = ImageTyperzAPI::solve_captcha_token($access_token, 'captcha.jpg');
     printf 'Captcha text: %s\n', $captcha_text;
+
     # ==============================================================================
     # solve recaptcha
     # -------------------------
@@ -36,7 +37,7 @@ sub test_api {
         #password   => $password,      # for legacy auth
 
         action     => 'UPLOADCAPTCHA',
-        pageurl    => 'page_url_here',
+        pageurl    => 'page_url_here',      # add --capy to the end to make it a capy captcha
         googlekey  => 'sitekey_here',
 
         # v3
@@ -119,8 +120,10 @@ sub test_api {
 
     # Other examples
     # ---------------------------------------------------------------------------------------------------------------------------------
-    # my $captcha_text = ImageTyperzAPI::solve_captcha_legacy($username, $password, 'captcha.jpg', '1', $ref_id);
-    # my $captcha_text = ImageTyperzAPI::solve_captcha_token($access_token, 'captcha.jpg', '1', $ref_id);	# with caseSensitive and affiliate_id
+    # solve image captcha with optional parameters
+    # token [or username & password if legacy], image, case sensitive, is phrase, is math, alphanumeric, minlength, maxlength, refid
+    # my $captcha_text = ImageTyperzAPI::solve_captcha_token($access_token, 'captcha.jpg', 'true', 'true', 'true', '2', '1', '7', '123');
+    # my $captcha_text = ImageTyperzAPI::solve_captcha_legacy($username, $password, 'captcha.jpg', 'true', 'true', 'true', '2', '1', '7', '123');
 
     # method to check if proxy was used, response is json
     # {

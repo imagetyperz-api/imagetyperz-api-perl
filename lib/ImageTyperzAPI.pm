@@ -36,16 +36,48 @@ my $GEETEST_SUBMIT_ENDPOINT_TOKEN = 'http://captchatypers.com/captchaapi/UploadG
 sub solve_captcha_token
 {
 	my $ref_id = '0';
-	my $chkcase = '0';
+	my $iscase = '';
+	my $isphrase = '';
+	my $ismath = '';
+	my $alphanumeric = '0';
+	my $minlength = '';
+	my $maxlength = '';
 	
 	my $ua = LWP::UserAgent->new();
+	# case
 	if(defined $_[2])		# check if chkcase was given
 	{
-		$chkcase = $_[2];	# set chkcase
+		$iscase = $_[2];	# set chkcase
 	}
-	if(defined $_[3])		# check if ref id was given
+	# phrase
+	if(defined $_[3])
 	{
-		$ref_id = $_[3];	# set ref id
+		$isphrase = $_[3];
+	}
+	# math
+	if(defined $_[4])
+	{
+		$ismath = $_[4];
+	}
+	# alphanumeric
+	if(defined $_[5])
+	{
+		$alphanumeric = $_[5];
+	}
+	# minlength
+	if(defined $_[6])
+	{
+		$minlength = $_[6];
+	}
+	# maxlength
+	if(defined $_[7])
+	{
+		$maxlength = $_[7];
+	}
+	# maxlength
+	if(defined $_[8])
+	{
+		$ref_id = $_[8];
 	}
 
 	# read file
@@ -58,7 +90,12 @@ sub solve_captcha_token
 				 action => 'UPLOADCAPTCHA',
 				 token => $_[0],
 				 file => encode_base64($string),
-				 chkCase => $chkcase,
+				 iscase => $iscase,
+				 isphrase => $isphrase,
+				 ismath => $ismath,
+				 alphanumeric => $alphanumeric,
+		   		 minlength => $minlength,
+				 maxlength => $maxlength,
 				 affiliateid => $ref_id
 				]);
 
@@ -73,6 +110,93 @@ sub solve_captcha_token
 		return replace("Uploading file...", "", $c);
     }
 }
+
+
+# LEGACY WAY
+# this might get deprecated, better of using access_token
+# --------------------------------------------------------
+
+# Solve normal captcha
+# --------------------------------------------------
+sub solve_captcha_legacy
+{
+	my $ref_id = '0';
+	my $iscase = '';
+	my $isphrase = '';
+	my $ismath = '';
+	my $alphanumeric = '0';
+	my $minlength = '';
+	my $maxlength = '';
+
+	my $ua = LWP::UserAgent->new();
+	# case
+	if(defined $_[3])		# check if chkcase was given
+	{
+		$iscase = $_[3];	# set chkcase
+	}
+	# phrase
+	if(defined $_[4])
+	{
+		$isphrase = $_[4];
+	}
+	# math
+	if(defined $_[5])
+	{
+		$ismath = $_[5];
+	}
+	# alphanumeric
+	if(defined $_[6])
+	{
+		$alphanumeric = $_[6];
+	}
+	# minlength
+	if(defined $_[7])
+	{
+		$minlength = $_[7];
+	}
+	# maxlength
+	if(defined $_[8])
+	{
+		$maxlength = $_[8];
+	}
+	# maxlength
+	if(defined $_[9])
+	{
+		$ref_id = $_[9];
+	}
+
+	# read file
+	local $/ = undef;
+	open FILE, $_[2] or die "Couldn't open file: $!";
+	my $string = <FILE>;
+	close FILE;
+
+	my $response = $ua->request(POST $CAPTCHA_ENDPOINT, Content => [
+		action => 'UPLOADCAPTCHA',
+		username => $_[0],
+		password => $_[1],
+		file => encode_base64($string),
+		iscase => $iscase,
+		isphrase => $isphrase,
+		ismath => $ismath,
+		alphanumeric => $alphanumeric,
+		minlength => $minlength,
+		maxlength => $maxlength,
+		affiliateid => $ref_id
+	]);
+
+	if ($response->is_error())
+	{
+		return $response->status_line;
+	} else {
+		my $c = $response->content();
+		if (index($c, 'ERROR') != -1) {
+			die($c);
+		}
+		return replace("Uploading file...", "", $c);
+	}
+}
+
 
 # Submit recaptcha
 # -------------------------------------------------------------------------------------------------
@@ -264,55 +388,6 @@ sub was_proxy_used_legacy
 		}
 		return $c;
 	}
-}
-
-
-# LEGACY WAY
-# this might get deprecated, better of using access_token
-# --------------------------------------------------------
-
-# Solve normal captcha
-# --------------------------------------------------
-sub solve_captcha_legacy
-{
-	my $ref_id = '0';
-	my $chkcase = '0';
-	
-	my $ua = LWP::UserAgent->new();
-	if(defined $_[3])		# check if chkcase was given
-	{
-		$chkcase = $_[3];	# set chkcase
-	}
-	if(defined $_[4])		# check if ref id was given
-	{
-		$ref_id = $_[4];	# set ref id
-	}
-
-	# read file
-    local $/ = undef;
-    open FILE, $_[2] or die "Couldn't open file: $!";
-    my $string = <FILE>;
-    close FILE;
-
-	my $response = $ua->request(POST $CAPTCHA_ENDPOINT, Content => [
-				 action => 'UPLOADCAPTCHA',
-				 username => $_[0],
-				 password => $_[1],
-				 file => encode_base64($string),
-				 chkCase => $chkcase,
-				 affiliateid => $ref_id
-				]);
-
-   	if ($response->is_error())
-   	{
-		return $response->status_line;
-    } else {
-		my $c = $response->content();
-		if (index($c, 'ERROR') != -1) {
-			die($c);
-		} 
-		return replace("Uploading file...", "", $c);
-    }
 }
 
 # Submit recaptcha

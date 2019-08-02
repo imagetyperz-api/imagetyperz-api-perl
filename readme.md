@@ -36,7 +36,11 @@ ImageTyperzAPI::account_balance_token($access_token);
 ### Submit image captcha
 
 ``` perl
+# without optional parameters
 my $captcha_text = ImageTyperzAPI::solve_captcha_token($access_token, 'captcha.jpg', '1');
+# with (all) optional parameters set
+# token [or username & password if legacy], image, case sensitive, is phrase, is math, alphanumeric, minlength, maxlength, refid
+my $captcha_text = ImageTyperzAPI::solve_captcha_token($access_token, 'captcha.jpg', 'true', 'true', 'true', '2', '1', '7');
 ```
 
 ## reCAPTCHA
@@ -160,6 +164,14 @@ printf 'Geetest response: %s\n', ImageTyperzAPI::retrieve_geetest([(
 ```
 
 Response will be a string object that looks like this: `challenge;;;validate;;;seccode`
+
+## Capy
+
+This captcha requires a `page_url` and `sitekey` in order to be solved by our system.
+Currently, in order to solve a capy captcha, you'll have to use the reCAPTCHA methods and only add `--capy` at the end of the `page_url`.
+Having that up, our system will pick it up as capy. Once workers have solved it, you'll have to use the reCAPTCHA retrieve endpoint, to get the response.
+
+**E.g** Original page url - `https://mysite.com`, capy page url `https://mysite.com--capy`
 
 ## Other methods/variables
 
