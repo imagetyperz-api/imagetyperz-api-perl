@@ -165,13 +165,37 @@ printf 'Geetest response: %s\n', ImageTyperzAPI::retrieve_geetest([(
 
 Response will be a string object that looks like this: `challenge;;;validate;;;seccode`
 
-## Capy
+## Capy & hCaptcha
 
-This captcha requires a `page_url` and `sitekey` in order to be solved by our system.
-Currently, in order to solve a capy captcha, you'll have to use the reCAPTCHA methods and only add `--capy` at the end of the `page_url`.
-Having that up, our system will pick it up as capy. Once workers have solved it, you'll have to use the reCAPTCHA retrieve endpoint, to get the response.
+This are two different captcha types, but both are similar to reCAPTCHA. They require a `pageurl` and `sitekey` for solving. hCaptcha is the newest one.
 
-**E.g** Original page url - `https://mysite.com`, capy page url `https://mysite.com--capy`
+### IMPORTANT
+For this two captcha types, the reCAPTCHA methods are used (explained above), except that there's one small difference.
+
+The `pageurl` parameter should have at the end of it `--capy` added for Capy captcha and `--hcaptcha` for the hCaptcha. This instructs our system it's a capy or hCaptcha. It will be changed in the future, to have it's own endpoints.
+
+For example, if you were to have the `pageurl` = `https://mysite.com` you would send it as `https://mysite.com--capy` if it's capy or `https://mysite.com--hcaptcha` for hCaptcha. Both require a sitekey too, which is sent as reCAPTCHA sitekey, and response is received as reCAPTCHA response, once again using the reCAPTCHA method.
+
+#### Example
+``` perl
+my $p = [
+    token      => $access_token,
+    action     => 'UPLOADCAPTCHA',
+    pageurl    => 'domain.com--capy',		# or `domain.com--hcaptcha`
+    googlekey  => 'sitekey_here',
+];
+
+// submit
+my $captcha_id = ImageTyperzAPI::submit_recaptcha_token($p);
+
+// retrieve capy
+while(ImageTyperzAPI::in_progress_token($access_token, $captcha_id))
+{
+    sleep(10);		# sleep for 10 seconds
+}
+
+my $solution = ImageTyperzAPI::retrieve_recaptcha_token($access_token, $captcha_id);
+```
 
 ## Other methods/variables
 

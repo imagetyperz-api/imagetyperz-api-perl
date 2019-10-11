@@ -37,7 +37,7 @@ sub test_api {
         #password   => $password,      # for legacy auth
 
         action     => 'UPLOADCAPTCHA',
-        pageurl    => 'page_url_here',      # add --capy to the end to make it a capy captcha
+        pageurl    => 'page_url_here',      # add --capy or --hcaptcha at the end, to submit capy or hCaptcha
         googlekey  => 'sitekey_here',
 
         # v3
