@@ -77,6 +77,7 @@ my $recaptcha_params = [
 
     # other optional parameters
     useragent => 'Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0', # optional
+    'data-s' => 'recaptcha data-s value', # optional
     affiliateid => '12344'    # affiliate id - optional
 ];
 my $captcha_id = ImageTyperzAPI::submit_recaptcha_token($recaptcha_params);
